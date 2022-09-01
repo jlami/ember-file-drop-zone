@@ -5,7 +5,7 @@ import { action } from '@ember/object';
 interface FileDropZoneComponentArgs {
   disabled: boolean;
   onDrop?: (files: File[]) => void;
-  onDragEnter?: () => void;
+  onDragEnter?: (fileCount: Number) => void;
   onDragLeave?: () => void;
 }
 
@@ -17,7 +17,7 @@ export default class FileDropZoneComponent extends Component<FileDropZoneCompone
   elementEnteredCounter = 0;
 
  @action
-  registerListener(element) {
+  registerListener(element:HTMLElement) {
     window.addEventListener('dragenter', this.onWindowDragEnter, false);
     window.addEventListener('dragleave', this.onWindowDragLeave, false);
     window.addEventListener('dragover', this.onWindowDragOver, false);
@@ -29,7 +29,7 @@ export default class FileDropZoneComponent extends Component<FileDropZoneCompone
   }
 
   @action
-  unregisterListener(element) {
+  unregisterListener(element:HTMLElement) {
     window.removeEventListener('dragenter', this.onWindowDragEnter, false);
     window.removeEventListener('dragleave', this.onWindowDragLeave, false);
     window.removeEventListener('dragover', this.onWindowDragOver, false);
@@ -41,7 +41,7 @@ export default class FileDropZoneComponent extends Component<FileDropZoneCompone
   }
 
   @action
-  onWindowDragEnter(e: DragEvent) {
+  onWindowDragEnter() {
     this.dragging = true;
     ++this.windowEnteredCounter;
   }
@@ -99,6 +99,7 @@ export default class FileDropZoneComponent extends Component<FileDropZoneCompone
     if (this.args.onDrop) {
       this.args.onDrop(this.extractFiles(e));
     }
+    return true;
   }
 
   reset() {
@@ -117,13 +118,13 @@ export default class FileDropZoneComponent extends Component<FileDropZoneCompone
         // If dropped items aren't files, reject them
         const item = event.dataTransfer.items[i];
         if (item.kind === 'file') {
-          files.push(item.getAsFile());
+          files.push(item.getAsFile()!);
         }
       }
     } else {
       // Use DataTransfer interface to access the file(s)
-      for (var j = 0; j < event.dataTransfer.files.length; j++) {
-        files.push(event.dataTransfer.files[j]);
+      for (var j = 0; j < (event.dataTransfer?.files.length || 0); j++) {
+        files.push(event.dataTransfer!.files[j]);
       }
     }
     return files;
